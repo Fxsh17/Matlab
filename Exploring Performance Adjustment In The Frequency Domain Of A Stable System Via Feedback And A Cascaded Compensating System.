@@ -1,0 +1,434 @@
+close all;
+clc;
+clear all; 
+syms s; 
+num1= [1];
+den1= [3,16,8,14];
+H= tf(num1,den1);
+k=28.67;
+sys1= feedback(k*H,1);
+figure(1);
+rlocus(sys1);
+figure(2);
+step(sys1); 
+
+
+%%%%%%%%%%%%%%%%%%%% Part A %%%%%%%%%%%%%%%%%%%%%%%%%%
+Ts= []; 
+Po= [];
+ess=[];
+Gm=[];
+Pm=[];
+Bw=[];
+
+i=0;
+for K= 0:0.1:28.666667
+    i=i+1;
+    sys2= feedback(K*H,1);
+    S1= stepinfo(sys2);
+    ts = S1.SettlingTime;
+    Ts(i)= S1.SettlingTime;
+    Po(i)=S1.Overshoot;
+    [y,t]=step(sys2); 
+    sserror=abs(1-y(end));
+    ess(i)= sserror;
+    [Gm(i),Pm(i)] = margin(sys2);
+    Bw(i)=bandwidth(sys2,-3);
+
+
+end 
+K= [0:0.1:28.666667];
+figure(3);
+plot(Ts,K);
+grid on
+xlabel("Ts")
+ylabel("K")
+title("Ts vs K")
+ylim([0,29]);
+figure(4);
+plot(Po,K);
+grid on
+xlabel("P.O")
+ylabel("K")
+title("P.O vs K")
+ylim([0,29]);
+figure(5);
+plot(ess,K);
+grid on
+xlabel("ess")
+ylabel("K")
+title("ess vs K")
+ylim([0,29]);
+figure(6);
+plot(K,Gm);
+grid on
+xlabel("GM")
+ylabel("K")
+title("GM vs K")
+ylim([0,29]);
+figure(7);
+plot(Pm,K);
+grid on
+xlabel("PM")
+ylabel("K")
+title("PM vs K")
+ylim([0,29]);
+figure(8);
+plot(Bw,K);
+grid on
+xlabel("BW")
+ylabel("K")
+title("BW vs K")
+ylim([0,29]);
+
+k5=5;
+k27=27;
+k50=50;
+
+sys5= k5*H;
+sys27= k27*H;
+sys50= k50*H;
+figure(9);
+hold on 
+nyquist(sys5);
+nyquist(sys27);
+nyquist(sys50);
+title("nyquist digram open loop system");
+
+legend('k=5','k=27','k=50');
+hold off
+figure(10);
+hold on 
+bode(sys5);
+bode(sys27);
+bode(sys50);
+title("bode plot open loop system");
+
+legend('k=5','k=27','k=50');
+hold off
+
+figure(11);
+hold on 
+step(sys5);
+step(sys27);
+step(sys50);
+title("step respone open loop system");
+legend('k=5','k=27','k=50');
+hold off
+
+%%%%%%%%%%
+
+figure(12);
+hold on 
+nyquist(feedback(sys5,1));
+nyquist(feedback(sys27,1));
+nyquist(feedback(sys50,1));
+title("nyquist digram closed loop system");
+legend('k=5','k=27','k=50');
+hold off
+
+figure(13);
+hold on 
+bode(feedback(sys5,1));
+bode(feedback(sys27,1));
+bode(feedback(sys50,1));
+title("bode plot closed loop system");
+legend('k=5','k=27','k=50');
+hold off
+figure(14);
+step(feedback(sys5,1));
+title("step respone closed loop system");
+legend('k=5');
+figure(15);
+step(feedback(sys27,1));
+title("step respone closed loop system");
+legend('k=27');
+
+figure(16);
+
+step(feedback(sys50,1));
+title("step respone closed loop system");
+legend('k=50');
+
+
+
+%%%%%%%%%%%%%%%%%%%% Part B %%%%%%%%%%%%%%%%%%%%%%%%%%
+s= tf("s");
+k= 28.667;
+Wm=[];
+Gc=[];
+Ts= []; 
+Po= [];
+ess=[];
+Gm=[];
+Pm=[];
+Bw=[];
+k=28.67;
+alpha=3.4;  
+i=0;
+for tau= 0.01:0.01:1
+    i=i+1;
+    Wm(i)= 1/(tau*sqrt(alpha));
+    sys8= feedback(k*(1+tau*alpha*s)/(1+tau*s)*H,1);
+    S1= stepinfo(sys8);
+    ts = S1.SettlingTime;
+    Ts(i)= S1.SettlingTime;
+    Po(i)=S1.Overshoot;
+    [y,t]=step(sys8); 
+    sserror=abs(1-y(end));
+    ess(i)= sserror;
+    [Gm(i),Pm(i)] = margin(sys8);
+    Bw(i)=bandwidth(sys8,-3);
+end
+
+figure(17);
+plot(Ts,Wm);
+grid on
+xlabel("Ts")
+ylabel("Wm")
+title("Ts vs Wm")
+figure(18);
+plot(Po,Wm);
+grid on
+xlabel("P.O")
+ylabel("Wm")
+title("P.O vs Wm")
+figure(19);
+plot(ess,Wm);
+grid on
+xlabel("ess")
+ylabel("Wm")
+title("ess vs Wm")
+figure(20);
+plot(Wm,Gm);
+grid on
+xlabel("GM")
+ylabel("Wm")
+title("GM vs Wm")
+figure(21);
+plot(Pm,Wm);
+grid on
+xlabel("PM")
+ylabel("Wm")
+title("PM vs Wm")
+figure(22);
+plot(Bw,Wm);
+grid on
+xlabel("BW")
+ylabel("Wm")
+title("BW vs Wm")
+
+
+alpham= 3.4;
+taum= 1;
+Gc= (1+taum*alpham*s)/(1+taum*s) ; 
+[wn,zeta] = damp(Gc);
+
+Ts= []; 
+Po= [];
+ess=[];
+Gm=[];
+Pm=[];
+Bw=[];
+Gc= (1+tau*alpha*wn)/(1+tau*wn) ; 
+
+i=0;
+for K= 0:0.1:28.666667
+    i=i+1;
+    sys2= feedback(K*Gc*H,1);
+    S1= stepinfo(sys2);
+    ts = S1.SettlingTime;
+    Ts(i)= S1.SettlingTime;
+    Po(i)=S1.Overshoot;
+    [y,t]=step(sys2); 
+    sserror=abs(1-y(end));
+    ess(i)= sserror;
+    [Gm(i),Pm(i)] = margin(sys2);
+    Bw(i)=bandwidth(sys2,-3);
+
+
+end 
+K= [0:0.1:28.666667];
+figure(23);
+plot(Ts,K);
+grid on
+xlabel("Ts")
+ylabel("K")
+title("Ts vs K")
+ylim([0,29]);
+figure(24);
+plot(Po,K);
+grid on
+xlabel("P.O")
+ylabel("K")
+title("P.O vs K")
+ylim([0,29]);
+figure(25);
+plot(ess,K);
+grid on
+xlabel("ess")
+ylabel("K")
+title("ess vs K")
+ylim([0,29]);
+figure(26);
+plot(K,Gm);
+grid on
+xlabel("GM")
+ylabel("K")
+title("GM vs K")
+ylim([0,29]);
+figure(27);
+plot(Pm,K);
+grid on
+xlabel("PM")
+ylabel("K")
+title("PM vs K")
+ylim([0,29]);
+figure(28);
+plot(Bw,K);
+grid on
+xlabel("BW")
+ylabel("K")
+title("BW vs K")
+ylim([0,29]);
+
+KmaxPm= 2.2; % from the plot 
+Gc= KmaxPm*(1+taum*alpham*wn)/(1+taum*wn) ; 
+sysx= feedback(Gc*H,1); 
+figure(29);
+nyquist(sysx);
+
+figure(30);
+bode(sysx);
+
+%%%%%%%%%%%%%%%%%%%% Part C %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+Wm=[];
+Gc=[];
+Ts= []; 
+Po= [];
+ess=[];
+Gm=[];
+Pm=[];
+Bw=[];
+Plg1= 1.0;
+i=0;
+%%%%%%%% case 1
+for x=[0.01:0.01:1]
+    i=i+1;
+    Zlg2= 1.0+ x;
+    sys8= feedback(KmaxPm* ((1+taum*alpham*s)/(1+taum*s))*((s+Zlg2)/(s+Plg1))*H,1);
+    S1= stepinfo(sys8);
+    ts = S1.SettlingTime;
+    Ts(i)= S1.SettlingTime;
+    Po(i)=S1.Overshoot;
+    [y,t]=step(sys8); 
+    sserror=abs(1-y(end));
+    ess(i)= sserror;
+    [Gm(i),Pm(i)] = margin(sys8);
+    Bw(i)=bandwidth(sys8,-3);
+end
+x=[0.01:0.01:1];
+figure(31);
+plot(Ts,x);
+grid on
+xlabel("Ts")
+ylabel("δ")
+title("Ts vs δ")
+figure(32);
+plot(Po,x);
+grid on
+xlabel("P.O")
+ylabel("δ")
+title("P.O vs δ")
+figure(33);
+plot(ess,x);
+grid on
+xlabel("ess")
+ylabel("δ")
+title("ess vs δ")
+figure(34);
+plot(x,Gm);
+grid on
+xlabel("GM")
+ylabel("δ")
+title("GM vs δ")
+figure(35);
+plot(Pm,x);
+grid on
+xlabel("PM")
+ylabel("δ")
+title("PM vs δ")
+figure(36);
+plot(Bw,x);
+grid on
+xlabel("BW")
+ylabel("δ")
+title("BW vs δ")
+
+
+
+
+
+
+
+
+
+%%%%%%%% case 2
+
+Plg2= 0.1; 
+i=0;
+for x=[0.01:0.01:1]
+    i=i+1;
+    Zlg2= 0.1+ x;
+    sys8= feedback(KmaxPm* ((1+taum*alpham*s)/(1+taum*s))*((s+Zlg2)/(s+Plg2))*H,1);
+    S1= stepinfo(sys8);
+    ts = S1.SettlingTime;
+    Ts(i)= S1.SettlingTime;
+    Po(i)=S1.Overshoot;
+    [y,t]=step(sys8); 
+    sserror=abs(1-y(end));
+    ess(i)= sserror;
+    [Gm(i),Pm(i)] = margin(sys8);
+    Bw(i)=bandwidth(sys8,-3);
+end
+x=[0.01:0.01:1];
+
+figure(37);
+plot(Ts,x);
+grid on
+xlabel("Ts")
+ylabel("δ")
+title("Ts vs δ")
+figure(38);
+plot(Po,x);
+grid on
+xlabel("P.O")
+ylabel("δ")
+title("P.O vs δ")
+figure(39);
+plot(ess,x);
+grid on
+xlabel("ess")
+ylabel("δ")
+title("ess vs δ")
+figure(40);
+plot(x,Gm);
+grid on
+xlabel("GM")
+ylabel("δ")
+title("GM vs δ")
+figure(41);
+plot(Pm,x);
+grid on
+xlabel("PM")
+ylabel("δ")
+title("PM vs δ")
+figure(42);
+plot(Bw,x);
+grid on
+xlabel("BW")
+ylabel("δ")
+title("BW vs δ")
